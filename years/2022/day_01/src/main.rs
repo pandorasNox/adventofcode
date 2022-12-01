@@ -1,6 +1,31 @@
+use std::env;
+use std::fs;
 
 fn main() {
-    println!("Hello, world!");
+    let args: Vec<String> = env::args().collect();
+
+    let file_path = &args[1];
+    println!("In file {}", file_path);
+
+    let contents = fs::read_to_string(file_path)
+        .expect("Should have been able to read the file");
+
+    println!("total Calories heavies elf is carrying: '{}'", heaviest_elf_calories_carried(contents.clone()));
+
+    let mut elfs_inventory = compose_elf_list_inventory(contents);
+    elfs_inventory
+      .sort_by(|a, b| a.calories.cmp(&b.calories) );
+    elfs_inventory.reverse();
+
+    let first_three_heaviest_elfs = &elfs_inventory[0..=2];
+
+    let mut sum_cals = 0;
+    for (_key, elf) in first_three_heaviest_elfs.iter().enumerate() {
+        println!("calories: {}", elf.calories);
+        sum_cals += elf.calories;
+    }
+
+    println!("sum calories: {}", sum_cals);
 }
 
 #[derive(Clone, Copy)]
@@ -8,9 +33,7 @@ struct Elf {
     calories: i32,
 }
 
-struct Elfs(Vec<Elf>);
-
-fn heaviest_elf(input: String) -> i32 {
+fn compose_elf_list_inventory(input: String) -> Vec<Elf> {
     //let cal_list_per_elf = Regex::new(r"\n\n").unwrap().split(input);
     let input_lines = input.split("\n");
 
@@ -20,7 +43,7 @@ fn heaviest_elf(input: String) -> i32 {
 
     let mut calories_accumulated = Vec::<i32>::new();
     for (line_nr, content) in input_lines.enumerate() {
-        println!("line {}:{}\n", line_nr, content);
+        // println!("line {}:{}\n", line_nr, content);
         if content == "".to_string() {
             //create elf with prev read lines ???
             if calories_accumulated.len() == 0 {
@@ -50,6 +73,12 @@ fn heaviest_elf(input: String) -> i32 {
         elfs.push(new_elf);
     }
 
+    return elfs;
+}
+
+fn heaviest_elf_calories_carried(input: String) -> i32 {
+    let elfs = compose_elf_list_inventory(input);
+
     let index_elf_with_most_cal = elfs
         .iter()
         .enumerate()
@@ -66,7 +95,7 @@ mod tests {
     fn one_result() {
         let input = _input_example();
 
-        assert_eq!(24_000, heaviest_elf(input));
+        assert_eq!(24_000, heaviest_elf_calories_carried(input));
     }
 }
 
